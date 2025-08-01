@@ -17,10 +17,10 @@ def generate_neq_yaml(
     """Dynamically generate an ESPEI NEQ YAML block for a single phase.
 
     Args:
-        db (Database): The pycalphad Database object containing the thermodynamic data.  # FIXME
+        db (Database): The pycalphad Database object containing the thermodynamic data.
         phase (str): The name of the phase for which to generate the YAML block.
         components (list[str]): A list of component symbols for the phase.
-        points (Any): A list of points (indices) for which to calculate the properties.  # FIXME
+        points (Any): A list of points (indices) for which to calculate the properties.
         pressure (float, optional): The pressure at which to calculate the properties, by default 101325 Pa.
         temperature (float, optional): The temperature at which to calculate the properties, by default 298.15 K.
 
@@ -70,10 +70,10 @@ def generate_neq_db(
     """Generate a PickleableTinyDB containing NEQ YAML blocks for multiple phases.
 
     Args:
-        db (Database): The pycalphad Database object containing the thermodynamic data.  # FIXME
+        db (Database): The pycalphad Database object containing the thermodynamic data.
         phases (list[str]): A list of phase names for which to generate the YAML blocks.
         components (list[str]): A list of component symbols for the phases.
-        points (Any):  A list of points (indices) for which to calculate the properties.  # FIXME
+        points (Any):  A list of points (indices) for which to calculate the properties.
         pressure (float, optional): The pressure at which to calculate the properties, by default 101325 Pa.
         temperature (float, optional): The temperature at which to calculate the properties, by default 298.15 K.
 

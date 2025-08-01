@@ -16,7 +16,7 @@ def load_tdb(path: str) -> Database:
         path (str): The path to the TDB file.
 
     Returns:
-        Database: A pycalphad Database object containing the thermodynamic data.  # FIXME
+        Database: A pycalphad Database object containing the thermodynamic data.
     """
     return Database(path)
 
