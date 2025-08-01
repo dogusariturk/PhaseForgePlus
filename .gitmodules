@@ -1,0 +1,4 @@
+[submodule "third_party/PhaseForge"]
+	path = third_party/PhaseForge
+	url = https://github.com/dogusariturk/PhaseForge.git
+	branch = main

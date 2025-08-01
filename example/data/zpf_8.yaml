@@ -1,0 +1,33 @@
+{
+  "components": [ "PT", "W" ],
+  "phases": [ "LIQUID", "FCC_A1", "BCC_A2" ],
+  "conditions": {
+    "P": 101325,
+    "T": [ 500, 500, 1000, 1500, 500, 1000, 1500, 2000, 500, 1000, 1500, 2000, 500, 1000, 1500, 2000,
+           3000, 3000 ]
+  },
+  "output": "ZPF",
+  "values": [
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.5 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.6 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.6 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.6 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.7 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.7 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.7 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.7 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.8 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.8 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.8 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.8 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.9 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.9 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.9 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.9 ] ], [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.8 ] ], [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "__HYPERPLANE__", [ "W" ], [ 0.9 ] ], [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+
+  ],
+  "reference": "ASM International (2008)"
+}

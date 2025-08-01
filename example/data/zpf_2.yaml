@@ -1,0 +1,21 @@
+{
+  "components": [ "PT", "W" ],
+  "phases": [ "FCC_A1", "BCC_A2" ],
+  "conditions": {
+    "P": 101325,
+    "T": [ 2720.54, 2547.04, 2376.50, 2217.86, 2049.39, 1874.99, 1709.77, 1546.94 ]
+  },
+  "broadcast_conditions": false,
+  "output": "ZPF",
+  "values": [
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9531 ] ] ],
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9656 ] ] ],
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9761 ] ] ],
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9841 ] ] ],
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9901 ] ] ],
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9942 ] ] ],
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9965 ] ] ],
+    [ [ "FCC_A1", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9991 ] ] ]
+  ],
+  "reference": "ASM International (2008)"
+}

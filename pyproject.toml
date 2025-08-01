@@ -1,0 +1,67 @@
+[project]
+name = "phaseforgeplus"
+version = "0.1.0"
+description = "A computationally efficient, fully open-source workflow for physically-informed CALPHAD model generation and parameter fitting."
+readme = "README.md"
+authors = [
+    { name = "Doguhan Sariturk", email = "dogu.sariturk@gmail.com" },
+    { name = "Courtney Kunselman", email = "cjkunselman18@tamu.edu" },
+    { name = "Siya Zhu", email = "siyazhu@tamu.edu" },
+    { name = "Raymundo Arroyave", email = "raymundo.arroyave@tamu.edu" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "espei",
+    "notebook>=7.4.4",
+    "pycalphad>=0.11.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.3,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+    "ruff>=0.12.5",
+]
+
+[tool.uv.sources]
+espei = { git = "https://github.com/cjkunselman18/ESPEI.git", branch = "Gradient-based_update" }
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "ERA", # Eradicate
+    "B",   # flake8-bugbear
+    "A",   # flake8-builtins
+    "C4",  # flake8-comprehensions
+    "FA",  # flake8-future-annotations
+    "ICN", # flake8-import-conventions
+    "Q",   # flake8-quotes
+    "SIM", # flake8-simplify
+    "TC",  # flake8-type-checking
+    "PTH", # flake8-use-pathlib
+    "I",   # isort
+    "N",   # pep8-naming
+    "E",   # pycodestyle Errors
+    "W",   # pycodestyle Warnings
+    "D",   # pydocstyle
+    "F",   # Pyflakes
+    "PL",  # Pylint
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",     # Line too long
+    "F401",     # Module imported but unused
+    'ERA001',   # Eradicate: Commented-out code
+    'D105',     # Missing docstring in magic method
+    'PLR0913',  # Too many arguments in function definition
+    'PTH123',   # `open()` should be replaced by `Path.open()`
+]
+pydocstyle.convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true

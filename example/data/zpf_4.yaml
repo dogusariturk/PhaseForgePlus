@@ -1,0 +1,20 @@
+{
+  "components": [ "PT", "W" ],
+  "phases": [ "LIQUID", "BCC_A2" ],
+  "conditions": {
+    "P": 101325,
+    "T": [ 3090.86, 2940.67, 3105.88, 3184.73, 3364.33, 3546.13, 3676.82 ]
+  },
+  "broadcast_conditions": false,
+  "output": "ZPF",
+  "values": [
+    [ [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9521 ] ] ],
+    [ [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9521 ] ] ],
+    [ [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9525 ] ] ],
+    [ [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9533 ] ] ],
+    [ [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9578 ] ] ],
+    [ [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9697 ] ] ],
+    [ [ "LIQUID", [ "W" ], [ null ] ], [ "BCC_A2", [ "W" ], [ 0.9945 ] ] ]
+  ],
+  "reference": "ASM International (2008)"
+}

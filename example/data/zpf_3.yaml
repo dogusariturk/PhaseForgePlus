@@ -1,0 +1,24 @@
+{
+  "components": [ "PT", "W" ],
+  "phases": [ "LIQUID", "BCC_A2" ],
+  "conditions": {
+    "P": 101325,
+    "T": [ 2727.37, 2882.47, 3022.80, 3148.59, 3257.48, 3351.82, 3433.49, 3503.89, 3562.56, 3612.78, 3653.14 ]
+  },
+  "broadcast_conditions": false,
+  "output": "ZPF",
+  "values": [
+    [ [ "LIQUID", [ "W" ], [ 0.6500 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.6793 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.7113 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.7433 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.7753 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.8073 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.8393 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.8713 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.9033 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.9353 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ],
+    [ [ "LIQUID", [ "W" ], [ 0.9673 ] ], [ "BCC_A2", [ "W" ], [ null ] ] ]
+  ],
+  "reference": "ASM International (2008)"
+}
