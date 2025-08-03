@@ -9,11 +9,11 @@ from espei.utils import MemoryStorage, PickleableTinyDB
 from pycalphad import Database
 
 
-def load_tdb(path: str) -> Database:
+def load_tdb(path: str | Path) -> Database:
     """Load a TDB file from disk into a pycalphad Database.
 
     Args:
-        path (str): The path to the TDB file.
+        path (str | Path): The path to the TDB file.
 
     Returns:
         Database: A pycalphad Database object containing the thermodynamic data.
@@ -21,11 +21,11 @@ def load_tdb(path: str) -> Database:
     return Database(path)
 
 
-def load_yaml(path: str) -> dict[str, Any]:
+def load_yaml(path: str | Path) -> dict[str, Any]:
     """Parse a YAML file from disk or provided as a string and return its contents as a dict.
 
     Args:
-        path (str): The path to the YAML file or a string containing YAML content.
+        path (str | Path): The path to the YAML file or a string containing YAML content.
 
     Returns:
         dict[str, Any]: A dictionary containing the parsed YAML data.
@@ -37,11 +37,11 @@ def load_yaml(path: str) -> dict[str, Any]:
     return yaml.safe_load(path)
 
 
-def search_and_load_yaml(path: str) -> PickleableTinyDB:
+def search_and_load_yaml(path: str | Path) -> PickleableTinyDB:
     """Search for YAML files in a directory and load them into a PickleableTinyDB.
 
     Args:
-        path (str): The directory path to search for YAML files.
+        path (str | Path): The directory path to search for YAML files.
 
     Returns:
         PickleableTinyDB: A PickleableTinyDB instance containing the data from the YAML files.

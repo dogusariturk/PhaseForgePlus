@@ -1,5 +1,7 @@
 """PhaseForgePlus: A Python package for thermodynamic database optimization."""
 
+from pathlib import Path
+
 import numpy as np
 from espei.utils import database_symbols_to_fit, unpack_piecewise
 from scipy import optimize as scipy_optimize
@@ -16,7 +18,7 @@ class PhaseForgePlus:
     a combination of ZPF and non-equilibrium thermochemical data.
 
     Attributes:
-        db (Database): The thermodynamic database containing the model parameters.
+        db (str | Path): The thermodynamic database containing the model parameters.
         zpf_path (str): Path to the ZPF data file.
         points (list): List of points for optimization.
         pressure (float): Pressure in Pascals.
@@ -27,12 +29,12 @@ class PhaseForgePlus:
         db_neq (PickleableTinyDB): Database containing non-equilibrium thermochemical data.
     """
 
-    def __init__(self, db, zpf_path, points, pressure, temperature) -> None:
+    def __init__(self, db: str | Path, zpf_path: str | Path, points: list, pressure: float, temperature: float) -> None:
         """Initialize the PhaseForgePlus class.
 
         Args:
-            db (str or Database): Path to the TDB file or a pycalphad Database object.
-            zpf_path (str): Path to the ZPF data file.
+            db (str | Path): Path to the TDB file or a pycalphad Database object.
+            zpf_path (str | Path): Path to the ZPF data file.
             points (list): List of points for optimization.
             pressure (float): Pressure in Pascals.
             temperature (float): Temperature in Kelvin.
@@ -40,8 +42,8 @@ class PhaseForgePlus:
         self.db = load_tdb(db)
         self.zpf_path = zpf_path
         self.points = points
-        self.components = list(db.elements)
-        self.phases = list(db.phases.keys())
+        self.components = list(self.db.elements)
+        self.phases = list(self.db.phases.keys())
         self.pressure = pressure
         self.temperature = temperature
 
