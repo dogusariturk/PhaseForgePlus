@@ -1,4 +1,4 @@
-"""Example of using PhaseForgePlus for a phase diagram optimization."""
+"""Example of using PhaseForgePlus for a TDB file optimization."""
 
 from phaseforgeplus import PhaseForgePlus
 

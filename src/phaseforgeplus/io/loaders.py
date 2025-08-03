@@ -1,4 +1,4 @@
-"""Loaders for various file formats used in PhaseForge+."""
+"""Loaders for various file formats used in PhaseForgePlus."""
 
 from pathlib import Path
 from typing import Any
@@ -31,7 +31,7 @@ def load_yaml(path: str | Path) -> dict[str, Any]:
         dict[str, Any]: A dictionary containing the parsed YAML data.
     """
     if Path(path).is_file():
-        with open(path) as stream:
+        with Path(path).open(encoding="utf-8") as stream:
             return yaml.safe_load(stream)
 
     return yaml.safe_load(path)
