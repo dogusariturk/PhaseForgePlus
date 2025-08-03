@@ -16,8 +16,8 @@ class TestMain(unittest.TestCase):
 
     def setUp(self):
         """Set up the test environment with a sample TDB file and ZPF data."""
-        self.db_path = Path(__file__).parent.joinpath("data/pt-w.tdb")
-        self.zpf_path = Path(__file__).parent.joinpath("data/")
+        self.db_path = Path(__file__).parent.joinpath("../example/data/pt-w.tdb")
+        self.zpf_path = Path(__file__).parent.joinpath("../example/data/")
 
     def test_initializes_with_valid_inputs(self):
         """Test if PhaseForgePlus initializes correctly with valid inputs."""
@@ -33,7 +33,7 @@ class TestMain(unittest.TestCase):
 
     def test_raises_error_for_invalid_tdb_path(self):
         """Test if PhaseForgePlus raises an error for an invalid TDB path."""
-        db_path = "data/invalid.tdb"
+        db_path = "../example/data/invalid.tdb"
         points = [0, 1]
         pressure = 101325
         temperature = 298.15

@@ -16,9 +16,9 @@ class TestObjective(unittest.TestCase):
 
     def setUp(self):
         """Set up the test environment with a sample TDB file and ZPF data."""
-        db_path = Path(__file__).parent.joinpath("data/pt-w.tdb")
+        db_path = Path(__file__).parent.joinpath("../example/data/pt-w.tdb")
         self.db = load_tdb(db_path)
-        zpf_path = Path(__file__).parent.joinpath("data/")
+        zpf_path = Path(__file__).parent.joinpath("../example/data/")
         self.db_zpf = search_and_load_yaml(zpf_path)
 
     def calculates_negative_log_likelihood_correctly(self):  # FIXME
@@ -33,7 +33,7 @@ class TestObjective(unittest.TestCase):
     def handles_empty_zpf_database(self):  # FIXME
         """Test if the objective function handles an empty ZPF database correctly."""
         db_zpf = PickleableTinyDB()
-        db_neq = PickleableTinyDB("data/neq_data.json")
+        db_neq = PickleableTinyDB("../example/data/neq_data.json")
         func = objective_function(self.db, db_zpf, db_neq)
         params = [1.0, 2.0, 3.0]
         neg_likelihood, neg_gradient = func(params)
@@ -42,7 +42,7 @@ class TestObjective(unittest.TestCase):
 
     def handles_empty_neq_database(self):  # FIXME
         """Test if the objective function handles an empty NEQ database correctly."""
-        db_zpf = PickleableTinyDB("data/zpf_data.json")
+        db_zpf = PickleableTinyDB("../example/data/zpf_data.json")
         db_neq = PickleableTinyDB()
         func = objective_function(self.db, db_zpf, db_neq)
         params = [1.0, 2.0, 3.0]
@@ -52,8 +52,8 @@ class TestObjective(unittest.TestCase):
 
     def raises_error_for_invalid_parameters(self):  # FIXME
         """Test if the objective function raises an error for invalid parameters."""
-        db_zpf = PickleableTinyDB("data/zpf_data.json")
-        db_neq = PickleableTinyDB("data/neq_data.json")
+        db_zpf = PickleableTinyDB("../example/data/zpf_data.json")
+        db_neq = PickleableTinyDB("../example/data/neq_data.json")
         func = objective_function(self.db, db_zpf, db_neq)
         params = "invalid_params"
         with self.assertRaises(TypeError):
@@ -61,8 +61,8 @@ class TestObjective(unittest.TestCase):
 
     def handles_no_symbols_to_fit(self):  # FIXME
         """Test if the objective function handles no symbols to fit correctly."""
-        db_zpf = PickleableTinyDB("data/zpf_data.json")
-        db_neq = PickleableTinyDB("data/neq_data.json")
+        db_zpf = PickleableTinyDB("../example/data/zpf_data.json")
+        db_neq = PickleableTinyDB("../example/data/neq_data.json")
         func = objective_function(self.db, db_zpf, db_neq)
         params = []
         neg_likelihood, neg_gradient = func(params)
