@@ -31,6 +31,7 @@ espei = { git = "https://github.com/cjkunselman18/ESPEI.git", branch = "Gradient
 
 [tool.ruff]
 line-length = 120
+exclude = ["example"]
 
 [tool.ruff.lint]
 select = [
