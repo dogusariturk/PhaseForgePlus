@@ -1,0 +1,5 @@
+sqs_lev=0_a_Pt=1
+sqs_lev=0_a_W=1
+sqs_lev=1_a_Pt=0.5,a_W=0.5
+sqs_lev=2_a_Pt=0.25,a_W=0.75
+sqs_lev=2_a_Pt=0.75,a_W=0.25
