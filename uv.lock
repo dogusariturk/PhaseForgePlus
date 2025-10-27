@@ -628,8 +628,8 @@ sdist = { url = "https://files.pythonhosted.org/packages/3f/d3/7635106605dedccd0
 
 [[package]]
 name = "espei"
-version = "0.8.11.dev33+g4888897ee"
-source = { git = "https://github.com/cjkunselman18/ESPEI.git?branch=Gradient-based_update#4888897eec880b6b9a67484dfb680d7de0a00750" }
+version = "0.8.11.dev35+gfb035ac67"
+source = { git = "https://github.com/cjkunselman18/ESPEI.git?branch=Gradient-based_update#fb035ac67fb1cdc7d9866f9c103c330d8fa993fc" }
 dependencies = [
     { name = "cerberus" },
     { name = "corner" },
