@@ -23,6 +23,7 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "prek>=0.2.12",
+    "pytest>=8.4.1",
     "ruff>=0.12.5",
 ]
 
@@ -58,6 +59,7 @@ ignore = [
     "E501",     # Line too long
     'PLR0913',  # Too many arguments in function definition
 ]
+pylint.allow-magic-value-types = ["str", "bytes", "int"]
 pydocstyle.convention = "google"
 
 [tool.ruff.format]

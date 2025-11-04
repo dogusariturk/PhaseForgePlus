@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths-ignore:
       - 'example/**'
+      - 'third_party/**'
   pull_request:
     branches: [main]
     paths-ignore:
       - 'example/**'
+      - 'third_party/**'
 
 jobs:
   test:
@@ -38,4 +40,4 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run python -m unittest discover -s tests
+          uv run pytest -v -s

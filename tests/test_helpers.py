@@ -1,6 +1,5 @@
 """Test cases for the helper functions in phaseforgeplus.utils.helpers."""
 
-import unittest
 from pathlib import Path
 
 from espei.utils import PickleableTinyDB
@@ -9,10 +8,10 @@ from phaseforgeplus.io import load_tdb
 from phaseforgeplus.utils import generate_neq_db, generate_neq_yaml
 
 
-class TestHelpers(unittest.TestCase):
+class TestHelpers:
     """Unit tests for helper functions in phaseforgeplus.utils.helpers."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up the test environment with a sample TDB file."""
         db_path = Path(__file__).parent.joinpath("../example/data/pt-w.tdb")
         self.db = load_tdb(db_path)
@@ -23,13 +22,13 @@ class TestHelpers(unittest.TestCase):
         components = ["PT", "W"]
         points = [0, 1]
         result = generate_neq_yaml(self.db, phase, components, points)
-        self.assertIsInstance(result, dict)
-        self.assertIn("components", result)
-        self.assertIn("phases", result)
-        self.assertIn("solver", result)
-        self.assertIn("conditions", result)
-        self.assertIn("output", result)
-        self.assertIn("values", result)
+        assert isinstance(result, dict)
+        assert "components" in result
+        assert "phases" in result
+        assert "solver" in result
+        assert "conditions" in result
+        assert "output" in result
+        assert "values" in result
 
     def test_handles_empty_points_in_neq_yaml(self):
         """Test if the generate_neq_yaml function handles empty points correctly."""
@@ -37,8 +36,8 @@ class TestHelpers(unittest.TestCase):
         components = ["PT", "W"]
         points = []
         result = generate_neq_yaml(self.db, phase, components, points)
-        self.assertEqual(result["values"], [[]])
-        self.assertEqual(result["solver"]["sublattice_occupancies"], [])
+        assert result["values"] == [[]]
+        assert result["solver"]["sublattice_occupancies"] == []
 
     def test_generates_neq_db_with_multiple_phases(self):
         """Test if the generate_neq_db function creates a valid NEQ database."""
@@ -46,8 +45,8 @@ class TestHelpers(unittest.TestCase):
         components = ["PT", "W"]
         points = [0, 1]
         result = generate_neq_db(self.db, phases, components, points)
-        self.assertIsInstance(result, PickleableTinyDB)
-        self.assertGreater(len(result), 0)
+        assert isinstance(result, PickleableTinyDB)
+        assert len(result) > 0
 
     def test_handles_empty_phases_in_neq_db(self):
         """Test if the generate_neq_db function handles empty phases correctly."""
@@ -55,5 +54,5 @@ class TestHelpers(unittest.TestCase):
         components = ["PT", "W"]
         points = [0, 1]
         result = generate_neq_db(self.db, phases, components, points)
-        self.assertIsInstance(result, PickleableTinyDB)
-        self.assertEqual(len(result), 0)
+        assert isinstance(result, PickleableTinyDB)
+        assert len(result) == 0
