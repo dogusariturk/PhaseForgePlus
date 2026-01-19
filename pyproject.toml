@@ -22,7 +22,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "prek<0.2.28",
+    "prek<0.2.31",
     "pytest>=8.4.1",
     "ruff>=0.12.5",
 ]
