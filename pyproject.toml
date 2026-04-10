@@ -12,7 +12,6 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "espei",
-    "notebook>=7.4.4",
     "pycalphad>=0.11.0",
 ]
 
@@ -22,6 +21,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pre-commit>=4.5.1",
     "prek<0.3.9",
     "pytest>=8.4.1",
     "ruff>=0.12.5",
@@ -57,7 +57,7 @@ select = [
 ]
 ignore = [
     "E501",     # Line too long
-    'PLR0913',  # Too many arguments in function definition
+    "PLR0913",  # Too many arguments in function definition
 ]
 pylint.allow-magic-value-types = ["str", "bytes", "int"]
 pydocstyle.convention = "google"

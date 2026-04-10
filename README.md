@@ -7,6 +7,7 @@
 [![Test](https://github.com/dogusariturk/PhaseForgePlus/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/PhaseForgePlus/actions/workflows/tests.yml)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17519087.svg)](https://doi.org/10.5281/zenodo.17519087)
+[![DOI](https://img.shields.io/badge/DOI-10.1007%2Fs11669--025--01222--2-blue)](https://doi.org/10.1007/s11669-025-01222-2)
 
 `PhaseForgePlus` is a Python-based, fully open-source workflow for generating and tuning physically-informed CALPHAD models. It integrates Machine-Learned Interatomic Potentials (MLIPs), the Alloy Theoretic Automated Toolkit (ATAT), and experimental data to efficiently produce accurate phase diagrams.
 
@@ -73,7 +74,7 @@ pfp.optimize()
 
 If you use PhaseForgePlus in your research, please cite the following:
 
-> Courtney Kunselman, Siya Zhu, Doğuhan Sarıtürk, Raymundo Arróyave. *Construction and Tuning of CALPHAD Models Using Machine-Learned Interatomic Potentials and Experimental Data: A Case Study of the Pt-W System*, arXiv:2508.01028 [cond-mat.mtrl-sci], Aug. 2025.
+> Courtney Kunselman, Siya Zhu, Doğuhan Sarıtürk, Raymundo Arróyave. *Construction and Tuning of CALPHAD Models Using Machine-Learned Interatomic Potentials and Experimental Data: A Case Study of the Pt-W System*, Journal of Phase Equilibria and Diffusion, 2025. https://doi.org/10.1007/s11669-025-01222-2
 
 > Sarıtürk, D., Kunselman, C., & Zhu, S. (2025). PhaseForgePlus (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.17519087
 
@@ -81,13 +82,12 @@ BibTeX:
 
 ```bibtex
 @article{kunselman2025construction,
-  author       = {Kunselman, Courtney  and Zhu, Siya and Sarıtürk, Doğuhan and Arróyave, Raymundo},
-  title        = {Construction and Tuning of CALPHAD Models Using Machine-Learned Interatomic Potentials and Experimental Data: A Case Study of the Pt-W System},
+  author       = {Kunselman, Courtney and Zhu, Siya and Sarıtürk, Doğuhan and Arróyave, Raymundo},
+  title        = {Construction and Tuning of {CALPHAD} Models Using Machine-Learned Interatomic Potentials and Experimental Data: A Case Study of the {Pt-W} System},
+  journal      = {Journal of Phase Equilibria and Diffusion},
   year         = 2025,
-  archivePrefix= {arXiv},
-  eprint       = {2508.01028},
-  primaryClass = {cond-mat.mtrl-sci},
-  url          = {https://arxiv.org/abs/2508.01028},
+  doi          = {10.1007/s11669-025-01222-2},
+  url          = {https://doi.org/10.1007/s11669-025-01222-2},
 }
 
 @software{sariturk_2025_17519087,
