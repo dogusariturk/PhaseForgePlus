@@ -58,6 +58,7 @@ select = [
 ignore = [
     "E501",     # Line too long
     "PLR0913",  # Too many arguments in function definition
+    "PLR0917", # Too many positional arguments
 ]
 pylint.allow-magic-value-types = ["str", "bytes", "int"]
 pydocstyle.convention = "google"
