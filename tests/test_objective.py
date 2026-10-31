@@ -4,11 +4,50 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from espei.utils import PickleableTinyDB, database_symbols_to_fit
+from espei.utils import PickleableTinyDB, database_symbols_to_fit, unpack_piecewise
 
 from phaseforgeplus.io import load_tdb, search_and_load_yaml
 from phaseforgeplus.utils import generate_neq_db
 from phaseforgeplus.utils.objective import objective_function
+
+EXAMPLE = Path(__file__).parent.joinpath("../example/data/")
+POINTS = [1801, 1601, 1401, 1201, 1001, 802, 602, 402, 202]
+
+
+def setup_pt_w():
+    """Return a new objective of the Pt-W example, its database, its fit parameters and their values."""
+    db = load_tdb(EXAMPLE / "pt-w.tdb")
+    db_neq = generate_neq_db(db, list(db.phases), list(db.elements), POINTS)
+    names = database_symbols_to_fit(db)
+    values = np.array([unpack_piecewise(db.symbols[name]) for name in names])
+    return objective_function(db, search_and_load_yaml(EXAMPLE), db_neq), db, names, values
+
+
+class TestPtW:
+    """Tests of the objective with the ESPEI of uv.lock on the Pt-W example."""
+
+    def test_value_at_the_database_parameters(self):
+        """Test the objective at the database parameters. The tolerance is above the rounding seen across pycalphad."""
+        func, _, _, values = setup_pt_w()
+        assert func(values)[0] == pytest.approx(6627.5843264, rel=1e-8)
+
+    def test_database_keeps_its_symbols_and_a_second_objective_agrees(self):
+        """Test that an evaluation leaves the database as it was, so a second objective in this process works."""
+        func, db, names, values = setup_pt_w()
+        symbols = set(db.symbols)
+        first = func(values)[0]
+        assert set(db.symbols) == symbols
+        assert database_symbols_to_fit(db) == names
+        assert setup_pt_w()[0](values)[0] == pytest.approx(first, rel=1e-12)
+
+    def test_gradient_matches_central_differences(self):
+        """Test the gradient along one direction, which all parameters contribute to."""
+        func, _, _, values = setup_pt_w()
+        direction = np.random.default_rng(0).standard_normal(len(values)) * np.maximum(np.abs(values), 1.0)
+        step = 1e-6
+        gradient = func(values)[1]
+        difference = (func(values + step * direction)[0] - func(values - step * direction)[0]) / (2 * step)
+        assert gradient @ direction == pytest.approx(difference, rel=1e-5)
 
 
 class TestObjective:
