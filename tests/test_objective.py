@@ -12,6 +12,8 @@ from phaseforgeplus.utils.objective import objective_function
 
 EXAMPLE = Path(__file__).parent.joinpath("../example/data/")
 POINTS = [1801, 1601, 1401, 1201, 1001, 802, 602, 402, 202]
+# 27 values with vanishing residuals and a standard deviation of 500 / 0.1 J/mol.
+NEQ_AT_ITS_DATA = 27 * float(np.log(5000.0 * np.sqrt(2 * np.pi)))
 
 
 def setup_pt_w():
@@ -29,7 +31,7 @@ class TestPtW:
     def test_value_at_the_database_parameters(self):
         """Test the objective at the database parameters. The tolerance is above the rounding seen across pycalphad."""
         func, _, _, values = setup_pt_w()
-        assert func(values)[0] == pytest.approx(6627.5843264, rel=1e-8)
+        assert func(values)[0] == pytest.approx(6627.5843264 + NEQ_AT_ITS_DATA, rel=1e-8)
 
     def test_database_keeps_its_symbols_and_a_second_objective_agrees(self):
         """Test that an evaluation leaves the database as it was, so a second objective in this process works."""

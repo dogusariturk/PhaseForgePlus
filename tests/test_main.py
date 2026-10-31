@@ -10,7 +10,7 @@ from scipy import optimize as scipy_optimize
 
 from phaseforgeplus import PhaseForgePlus, main
 
-PT_W_START_OBJECTIVE = 6627.6
+PT_W_START_OBJECTIVE = 6882.4
 
 
 class TestMain:
