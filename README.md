@@ -70,6 +70,21 @@ pfp.optimize()
 
 ---
 
+## Optimizer Options
+
+`optimize()` runs conjugate gradient with `scipy.optimize.minimize` by default. Another method, its options and starting points can be given. `options` replaces the default `{"disp": True}`.
+
+```python
+result = pfp.optimize(method="L-BFGS-B", options={"maxiter": 500, "ftol": 1e-9})
+
+# One run from each start, in the order of database_symbols_to_fit. The result is the run with the lowest objective,
+# with result.start_index and all results in result.runs.
+start = pfp.get_initial_values()
+result = pfp.optimize(options={"maxiter": 500, "gtol": 1e-3}, starts=[start, 1.1 * start])
+```
+
+---
+
 ## Hinge Penalty on Spurious Phases
 
 An optional penalty keeps phases out of regions where the evidence says they are not stable. It is off unless cells are given, and then the objective is exactly the one above.
