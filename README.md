@@ -70,6 +70,54 @@ pfp.optimize()
 
 ---
 
+## Hinge Penalty on Spurious Phases
+
+An optional penalty keeps phases out of regions where the evidence says they are not stable. It is off unless cells are given, and then the objective is exactly the one above.
+
+Each cell gives the phases expected at a temperature `T` and mole fraction `x`. Their Gibbs energies define a target line: the chord of one phase over `x ± chord_half_width`, or the line through two phases at the tie-line ends. Every other phase whose lowest energy over that line is below `margin` adds `0.5 * confidence * ((margin - DG) / sigma) ** 2` to the negative log-likelihood, with its exact gradient.
+
+```python
+from phaseforgeplus import PhaseForgePlus
+from phaseforgeplus.utils.hinge import HingeOptions
+
+cells = [
+    # One expected phase. sigma is in J per mole of atoms.
+    {"T": 1000.0, "x": 0.1, "expected": ["FCC_A1"], "sigma": 500.0},
+    # Two expected phases need the tie-line ends. Optional: confidence (default 1), penalize (default all other phases),
+    # sigma per penalized phase.
+    {
+        "T": 1500.0,
+        "x": 0.5,
+        "expected": ["FCC_A1", "BCC_A2"],
+        "tie_line": {"FCC_A1": 0.45, "BCC_A2": 0.9},
+        "confidence": 0.5,
+        "penalize": ["LIQUID"],
+        "sigma": {"LIQUID": 900.0},
+    },
+]
+
+pfp = PhaseForgePlus(
+    db="./data/pt-w.tdb",
+    zpf_path="./data",
+    points=[1801, 1601, 1401, 1201, 1001, 802, 602, 402, 202],
+    pressure=101325,
+    temperature=298.15,
+    hinge_cells=cells,
+    hinge_element="W",  # x is the mole fraction of this element
+    hinge_options=HingeOptions(margin=50.0, chord_half_width=0.01),
+)
+
+pfp.optimize()
+```
+
+Limits:
+
+* Binary systems only, with pure neutral elements and vacancies as constituents, and at most three constituents per sublattice. Other input raises an error.
+* Stoichiometric phases can be penalized and can be a tie-line end, but cannot be the single expected phase of a cell. A cell's `penalize` should leave out other composition sets of an expected phase, which the default does not know about.
+* Minima are taken over fixed grids of configurations (see `HingeOptions`), with vacancy fractions capped at 0.4 by default. The gradient is exact for this discretized function, which has kinks where a minimizer changes and where the driving force crosses the margin.
+
+---
+
 ## Citation
 
 If you use PhaseForgePlus in your research, please cite the following:
