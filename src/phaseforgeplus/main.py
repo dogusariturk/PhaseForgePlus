@@ -8,6 +8,7 @@ from scipy import optimize as scipy_optimize
 
 from phaseforgeplus.io import load_tdb, search_and_load_yaml
 from phaseforgeplus.utils import generate_neq_db
+from phaseforgeplus.utils.hinge import HingeOptions, HingePenalty
 from phaseforgeplus.utils.objective import objective_function
 
 
@@ -27,9 +28,20 @@ class PhaseForgePlus:
         phases (list): List of phases in the database.
         db_zpf (PickleableTinyDB): Database containing ZPF data points.
         db_neq (PickleableTinyDB): Database containing non-equilibrium thermochemical data.
+        hinge (HingePenalty | None): Penalty on phases that should not be stable, None unless cells are given.
     """
 
-    def __init__(self, db: str | Path, zpf_path: str | Path, points: list, pressure: float, temperature: float) -> None:
+    def __init__(
+        self,
+        db: str | Path,
+        zpf_path: str | Path,
+        points: list,
+        pressure: float,
+        temperature: float,
+        hinge_cells: list | None = None,
+        hinge_element: str | None = None,
+        hinge_options: HingeOptions | None = None,
+    ) -> None:
         """Initialize the PhaseForgePlus class.
 
         Args:
@@ -38,6 +50,9 @@ class PhaseForgePlus:
             points (list): List of points for optimization.
             pressure (float): Pressure in Pascals.
             temperature (float): Temperature in Kelvin.
+            hinge_cells (list | None): Cells of the hinge penalty, see ``HingeCell``. No penalty when empty or None.
+            hinge_element (str | None): The element whose mole fraction is ``x`` in the cells.
+            hinge_options (HingeOptions | None): Settings of the hinge penalty.
         """
         self.db = load_tdb(db)
         self.zpf_path = zpf_path
@@ -58,9 +73,14 @@ class PhaseForgePlus:
             temperature=self.temperature,
         )
 
+        self.hinge = None
+        if hinge_cells:
+            symbols = database_symbols_to_fit(self.db)
+            self.hinge = HingePenalty(self.db, symbols, hinge_cells, hinge_element, hinge_options)
+
     def optimize(self) -> scipy_optimize.OptimizeResult:
         """Optimize the thermodynamic database using a combination of ZPF and non-equilibrium data."""
-        func = objective_function(self.db, self.db_zpf, self.db_neq)
+        func = objective_function(self.db, self.db_zpf, self.db_neq, self.hinge)
         optimized_tdb = scipy_optimize.minimize(
             func,
             self.get_initial_values(),
