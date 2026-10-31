@@ -31,12 +31,12 @@ def objective_function(
     def func(params):
         """Objective function that combines ZPF and non-equilibrium data."""
         residual_func_zpf = ZPFResidual(db, db_zpf, phase_models=None, symbols_to_fit=symbols_to_fit)
-        likelihood_zpf, gradient_zpf = residual_func_zpf.get_likelihood(np.array(params))
+        likelihood_zpf, gradient_zpf = residual_func_zpf.get_likelihood_and_gradient(np.array(params))
 
         residual_func_neq = FixedConfigurationPropertyResidual(
             db, db_neq, phase_models=None, symbols_to_fit=symbols_to_fit
         )
-        likelihood_neq, gradient_neq = residual_func_neq.get_likelihood(np.array(params))
+        likelihood_neq, gradient_neq = residual_func_neq.get_likelihood_and_gradient(np.array(params))
 
         neg_likelihood = -(likelihood_zpf + likelihood_neq)
         neg_gradient = -1 * (gradient_zpf + gradient_neq)

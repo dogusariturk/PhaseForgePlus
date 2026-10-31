@@ -252,8 +252,7 @@ class TestHook:
     def test_objective_is_unchanged_and_penalty_adds(self, monkeypatch):
         """Test the objective against its plain formula, without and with the penalty.
 
-        The residuals are replaced, because the ESPEI of uv.lock removes the fit parameters from the database and leaves
-        process-wide state that breaks later tests.
+        The residuals are replaced so that the plain formula is known.
         """
 
         class FakeResidual:
@@ -264,7 +263,7 @@ class TestHook:
             def __init__(self, db, data, phase_models, symbols_to_fit):
                 self.n = len(symbols_to_fit)
 
-            def get_likelihood(self, params):
+            def get_likelihood_and_gradient(self, params):
                 return -self.scale * float(params.sum()), -self.scale * np.arange(1.0, self.n + 1)
 
         class FakeNeqResidual(FakeResidual):

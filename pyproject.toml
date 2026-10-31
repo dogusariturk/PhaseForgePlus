@@ -28,7 +28,8 @@ dev = [
 ]
 
 [tool.uv.sources]
-espei = { git = "https://github.com/cjkunselman18/ESPEI.git", branch = "Gradient-based_update" }
+espei = { git = "https://github.com/cjkunselman18/ESPEI.git", rev = "9039ea215c8946ff6761528071db9e519f37dfb1" }
+pycalphad = { git = "https://github.com/pycalphad/pycalphad.git", rev = "9a6939dd29f05987df91dfb43418479f90c8e6bc" }
 
 [tool.ruff]
 line-length = 120

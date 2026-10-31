@@ -343,8 +343,8 @@ sdist = { url = "https://files.pythonhosted.org/packages/3f/d3/7635106605dedccd0
 
 [[package]]
 name = "espei"
-version = "0.8.11.dev33+g4888897ee"
-source = { git = "https://github.com/cjkunselman18/ESPEI.git?branch=Gradient-based_update#4888897eec880b6b9a67484dfb680d7de0a00750" }
+version = "0.8.11.dev82+g9039ea215"
+source = { git = "https://github.com/cjkunselman18/ESPEI.git?rev=9039ea215c8946ff6761528071db9e519f37dfb1#9039ea215c8946ff6761528071db9e519f37dfb1" }
 dependencies = [
     { name = "cerberus" },
     { name = "corner" },
@@ -906,8 +906,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "espei", git = "https://github.com/cjkunselman18/ESPEI.git?branch=Gradient-based_update" },
-    { name = "pycalphad", specifier = ">=0.11.0" },
+    { name = "espei", git = "https://github.com/cjkunselman18/ESPEI.git?rev=9039ea215c8946ff6761528071db9e519f37dfb1" },
+    { name = "pycalphad", git = "https://github.com/pycalphad/pycalphad.git?rev=9a6939dd29f05987df91dfb43418479f90c8e6bc" },
 ]
 
 [package.metadata.requires-dev]
@@ -1120,8 +1120,8 @@ wheels = [
 
 [[package]]
 name = "pycalphad"
-version = "0.11.2"
-source = { registry = "https://pypi.org/simple" }
+version = "0.11.3.dev35+g9a6939dd2"
+source = { git = "https://github.com/pycalphad/pycalphad.git?rev=9a6939dd29f05987df91dfb43418479f90c8e6bc#9a6939dd29f05987df91dfb43418479f90c8e6bc" }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
@@ -1136,29 +1136,6 @@ dependencies = [
     { name = "tinydb" },
     { name = "typing-extensions" },
     { name = "xarray" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f4/f5/36260dda3c47f799a0cd3b4613116ec82068b042b5ed0b8f167035037231/pycalphad-0.11.2.tar.gz", hash = "sha256:588ad2c0c207aa35d263c16283559eff566a8fcdf33ecdc77a9ec9176cde1378", size = 5516466, upload-time = "2026-06-05T17:41:04.848Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/9a/bd54a15cadabb09b4fa8da7b37e052761f404f5d813955270046b9d0fe8d/pycalphad-0.11.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:e6f1a5f8cc6c74bc2ddda205a2e7dc66bce07092e78a280c02a1f6f31f968d8f", size = 2287404, upload-time = "2026-06-05T17:40:33.412Z" },
-    { url = "https://files.pythonhosted.org/packages/87/35/85ce4fcd0928e6b0d20ddc69018651e85caf3362f558a3497a6b61ff7c5a/pycalphad-0.11.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:193212cef3477114da391b7dc1896ebde6450b3a8dbc929ed061dac079ee8bf1", size = 2255735, upload-time = "2026-06-05T17:40:35.122Z" },
-    { url = "https://files.pythonhosted.org/packages/49/bd/b476704f7177f7f3419a9eff8b01162f1a77b2d7f62377231077a7ab6bbf/pycalphad-0.11.2-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:56fc50a758110f20d71f8ac70165002e5c5ec4eaaa27a3d0ed44601333366e1b", size = 6204478, upload-time = "2026-06-05T17:40:36.778Z" },
-    { url = "https://files.pythonhosted.org/packages/56/57/a581b0bd30accfb1ba82d960cb54d16bc4dab8ba9fccc78a93cfe0fc476e/pycalphad-0.11.2-cp311-cp311-win_amd64.whl", hash = "sha256:aa175ec4605662c88f4378488c96dd044333f37b088c0e6f27328460f72dd122", size = 2182987, upload-time = "2026-06-05T17:40:38.315Z" },
-    { url = "https://files.pythonhosted.org/packages/24/bd/cb7caa19628ef4aee0ede01d354cdf08313eb69d889e891bc76f9afbd238/pycalphad-0.11.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:c90b708bdea3ca96ca9728ffbba09bdc30e958ac0ec98acbd71ee1f150bd551e", size = 2285264, upload-time = "2026-06-05T17:40:39.61Z" },
-    { url = "https://files.pythonhosted.org/packages/c2/a7/2a0e05bd1554acad62dac7e98469d3797e16394cff921f6f6fdf5c196f93/pycalphad-0.11.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:e557a8ed459c4ddbbbc18261e35f38b6edd0a978a7d74e1e43c317dca4bc9c29", size = 2255174, upload-time = "2026-06-05T17:40:41.089Z" },
-    { url = "https://files.pythonhosted.org/packages/2e/fd/dd5a69f9e0055b7f2fed84069ef63aa742fb4a0c0df6496d667ee8fee639/pycalphad-0.11.2-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:6ebf84ea8c1be8fdd8c2cdfc20205703cd09f7e92633a50247ad12c92eebdcb8", size = 6067848, upload-time = "2026-06-05T17:40:42.558Z" },
-    { url = "https://files.pythonhosted.org/packages/1e/46/0bea0edb115aab07c663365b601c8098bd058e524d012f2b3f3fee01cce5/pycalphad-0.11.2-cp312-cp312-win_amd64.whl", hash = "sha256:53f6547738d02abb7349606548cce11747e22fc8a1308a1b866fb627e713ac58", size = 2174790, upload-time = "2026-06-05T17:40:44.123Z" },
-    { url = "https://files.pythonhosted.org/packages/fb/52/d1aef695d762cada61b6fb0ac3497f2f562ed61f9a03c838799d9fe1264b/pycalphad-0.11.2-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:9d227f2572cae926e4fa9576c6fce1a311faa38ef3d4407747d127232d91fbc0", size = 2281132, upload-time = "2026-06-05T17:40:45.545Z" },
-    { url = "https://files.pythonhosted.org/packages/61/eb/f6463980f93060beff36a7dc1e72fba17ac4c9955ff9b405bebd3c5409d0/pycalphad-0.11.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:69bbfbcf45207475957cac56cd0dc6b11710a89b1911778a188d68444532fdf3", size = 2251191, upload-time = "2026-06-05T17:40:47.015Z" },
-    { url = "https://files.pythonhosted.org/packages/bb/e5/620f841440a50e1d098b24abaaef3c6d684958c8d0a23ced32360e51400e/pycalphad-0.11.2-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:53115bf00da0b42dc2e33135ab61bd4e9b9c1540b7f340146cca8c593a83cde1", size = 6061759, upload-time = "2026-06-05T17:40:48.588Z" },
-    { url = "https://files.pythonhosted.org/packages/af/85/c78ee5f68647ac594f21a31aede25f81cedce9a0c503cddca7644c39acd2/pycalphad-0.11.2-cp313-cp313-win_amd64.whl", hash = "sha256:ffdee14780f33ca2de471c5f34065c8d912b0bdb126c027240bf1849f81e4c3c", size = 2173975, upload-time = "2026-06-05T17:40:50.082Z" },
-    { url = "https://files.pythonhosted.org/packages/0e/cc/11b292e26dc76f3f852e8649c9c5440f7b830697fbce5fc83c1cfa9f7cbd/pycalphad-0.11.2-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:5fe42b3d630555d46a873025e91371308e2298ba97c90e5b856222be0fbb6c29", size = 2304006, upload-time = "2026-06-05T17:40:52.182Z" },
-    { url = "https://files.pythonhosted.org/packages/d2/e1/efde475dcfedc3c2ec00e74d1370f60523f6bbb513fab71accb3563f073d/pycalphad-0.11.2-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:341d67fb4806665b8473ba69327bf1b1e3a80024077d79013d1761449c99a162", size = 2278138, upload-time = "2026-06-05T17:40:53.936Z" },
-    { url = "https://files.pythonhosted.org/packages/74/c5/7b0e8aec24b652d890e8c256a66ee2756854d97e1fb8c3bf55b0c4a33e37/pycalphad-0.11.2-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7f224a4927f47023618cfa014f7c8ebdd6eaecca8157a25f9dc75153de64b889", size = 6049236, upload-time = "2026-06-05T17:40:55.579Z" },
-    { url = "https://files.pythonhosted.org/packages/6b/c6/880ba4935ec8c1b462771eda5814e4131da3e327d1dfdb57ac3b803796e8/pycalphad-0.11.2-cp314-cp314-win_amd64.whl", hash = "sha256:99ce29b68bb4611ce71493e573c508e89f4e97dbd28cedf25531eaaa556bc356", size = 2205036, upload-time = "2026-06-05T17:40:57.077Z" },
-    { url = "https://files.pythonhosted.org/packages/91/fa/967bd82810d2d252c4663b32a4f923fe22c1091c3b33c4459271818828fd/pycalphad-0.11.2-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:1b9574c315b2eb2444e685ced59e639af267efd33e49f02b33de7c8a13db395f", size = 2331753, upload-time = "2026-06-05T17:40:58.616Z" },
-    { url = "https://files.pythonhosted.org/packages/c5/6b/b13c201f834c5778bfbd89648ac4684e8127d0ef1409f1a4ec5a7f26adaa/pycalphad-0.11.2-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:db82f8dfb805b2bb193fa8a0305d2d63d102399416811e63d0c34a72a609c8c7", size = 2313092, upload-time = "2026-06-05T17:41:00.207Z" },
-    { url = "https://files.pythonhosted.org/packages/9e/85/ba76341ff30ecfa85d36e55e567a476e7ae71d501a7f1bf0b8d60eb519d3/pycalphad-0.11.2-cp314-cp314t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:325b5aad6a215935562aa4102fc8da387310c1f2d1df8c3873c8dc2bf5822a89", size = 6068693, upload-time = "2026-06-05T17:41:01.651Z" },
-    { url = "https://files.pythonhosted.org/packages/54/32/46eafb0e1455f65e05300977a6b92b4b985d2b03f5ddfecea36755949c3a/pycalphad-0.11.2-cp314-cp314t-win_amd64.whl", hash = "sha256:26fc8009176e6204b3ca585fd2fcf9d59e4ddad1fdd5fcbcd31e2165efa2f204", size = 2245970, upload-time = "2026-06-05T17:41:03.461Z" },
 ]
 
 [[package]]
