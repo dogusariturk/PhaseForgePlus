@@ -35,6 +35,6 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Run prek
-        uses: j178/prek-action@v3.0.0
+        uses: j178/prek-action@v3.1.0
         with:
           prek-version: '0.2.14'
