@@ -43,10 +43,30 @@ By combining `PhaseForge` and `PhaseForgePlus`, you can seamlessly transition fr
 
 ## Installation
 
-You can install `PhaseForgePlus` via pip:
+The PyPI release is out of date until the next pycalphad release, so for now install PhaseForgePlus from GitHub with [uv](https://docs.astral.sh/uv/).
+
+To start a new project:
 
 ```sh
-pip install phaseforgeplus
+uv init --python 3.13 my-project
+cd my-project
+uv add git+https://github.com/dogusariturk/PhaseForgePlus.git
+```
+
+Keep `--python` on `uv init`. Without it, uv may pick Python 3.14, which PhaseForgePlus doesn't support yet.
+
+To install into an environment you already have:
+
+```sh
+uv pip install git+https://github.com/dogusariturk/PhaseForgePlus.git
+```
+
+To work on PhaseForgePlus itself, clone the repository and run `uv sync`:
+
+```sh
+git clone https://github.com/dogusariturk/PhaseForgePlus.git
+cd PhaseForgePlus
+uv sync
 ```
 
 ---
