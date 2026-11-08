@@ -9,7 +9,7 @@ authors = [
     { name = "Siya Zhu", email = "siyazhu@tamu.edu" },
     { name = "Raymundo Arroyave", email = "raymundo.arroyave@tamu.edu" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "espei",
     "pycalphad>0.11.2",

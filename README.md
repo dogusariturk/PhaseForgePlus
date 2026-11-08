@@ -2,7 +2,7 @@
 
 # PhaseForge+
 
-![Python](https://img.shields.io/badge/python-3.11-blue)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 ![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)
 [![Test](https://github.com/dogusariturk/PhaseForgePlus/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/PhaseForgePlus/actions/workflows/tests.yml)
 
