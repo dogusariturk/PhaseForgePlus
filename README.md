@@ -72,13 +72,14 @@ pfp.optimize()
 
 ## Optimizer Options
 
-`optimize()` runs conjugate gradient with `scipy.optimize.minimize` by default. Another method, its options and starting points can be given. `options` replaces the default `{"disp": True}`.
+By default, `optimize()` runs conjugate gradient (`method="CG"`) through `scipy.optimize.minimize`. You can pass a different method, options for that method, and starting points. Passing `options` replaces the default `{"disp": True}` rather than adding to it. Without `starts`, the run begins at the parameter values in the database.
 
 ```python
 result = pfp.optimize(method="L-BFGS-B", options={"maxiter": 500, "ftol": 1e-9})
 
-# One run from each start, in the order of database_symbols_to_fit. The result is the run with the lowest objective,
-# with result.start_index and all results in result.runs.
+# Each start is a parameter vector in the order of database_symbols_to_fit and gets its own run. The returned result
+# is the run with the lowest objective. result.start_index tells you which start it came from, and result.runs holds
+# every run in the order of the starts.
 start = pfp.get_initial_values()
 result = pfp.optimize(options={"maxiter": 500, "gtol": 1e-3}, starts=[start, 1.1 * start])
 ```
@@ -87,19 +88,19 @@ result = pfp.optimize(options={"maxiter": 500, "gtol": 1e-3}, starts=[start, 1.1
 
 ## Hinge Penalty on Spurious Phases
 
-An optional penalty keeps phases out of regions where the evidence says they are not stable. It is off unless cells are given, and then the objective is exactly the one above.
+The optional hinge penalty discourages parameters that make a phase stable where the evidence says it should not be. It is off unless you pass cells. Without cells, the objective is only the negative log-likelihood of the ZPF and non-equilibrium data.
 
-Each cell gives the phases expected at a temperature `T` and mole fraction `x`. Their Gibbs energies define a target line: the chord of one phase over `x ± chord_half_width`, or the line through two phases at the tie-line ends. Every other phase whose lowest energy over that line is below `margin` adds `0.5 * confidence * ((margin - DG) / sigma) ** 2` to the negative log-likelihood, with its exact gradient.
+Each cell lists the phases expected to be stable at a temperature `T` and mole fraction `x`, and their Gibbs energies set a target line. For one expected phase, the line is that phase's chord over `x ± chord_half_width`. For two, it passes through both phases at the tie-line ends. Every penalized phase (by default, every phase not in `expected`) gets a driving force `DG`, the lowest value of its Gibbs energy minus the target line. When `DG` falls below `margin`, that phase adds `0.5 * confidence * ((margin - DG) / sigma) ** 2` to the negative log-likelihood. The penalty also passes its exact gradient to the optimizer.
 
 ```python
 from phaseforgeplus import PhaseForgePlus
-from phaseforgeplus.utils.hinge import HingeOptions
+from phaseforgeplus.utils import HingeOptions
 
 cells = [
     # One expected phase. sigma is in J per mole of atoms.
     {"T": 1000.0, "x": 0.1, "expected": ["FCC_A1"], "sigma": 500.0},
-    # Two expected phases need the tie-line ends. Optional: confidence (default 1), penalize (default all other phases),
-    # sigma per penalized phase.
+    # Two expected phases also need the tie-line ends. confidence defaults to 1 and penalize to every other phase.
+    # sigma can also be given per penalized phase.
     {
         "T": 1500.0,
         "x": 0.5,
@@ -127,9 +128,10 @@ pfp.optimize()
 
 Limits:
 
-* Binary systems only, with pure neutral elements and vacancies as constituents, and at most three constituents per sublattice. Other input raises an error.
-* Stoichiometric phases can be penalized and can be a tie-line end, but cannot be the single expected phase of a cell. A cell's `penalize` should leave out other composition sets of an expected phase, which the default does not know about.
-* Minima are taken over fixed grids of configurations (see `HingeOptions`), with vacancy fractions capped at 0.4 by default. The gradient is exact for this discretized function, which has kinks where a minimizer changes and where the driving force crosses the margin.
+* The penalty handles binary systems only. Constituents must be pure neutral elements or vacancies, with at most three per sublattice. Anything else raises an error.
+* Stoichiometric phases can be penalized and can sit at a tie-line end, but they cannot be the only expected phase in a cell.
+* The default `penalize` list cannot tell that a phase is another composition set of an expected phase, so it penalizes that set too. Give `penalize` explicitly to leave such phases out.
+* Each minimum is found on a fixed grid of configurations (see `HingeOptions`), with vacancy site fractions capped at 0.4 by default. The gradient is exact for this discretized function, which has kinks where the minimizing configuration changes and where `DG` crosses `margin`.
 
 ---
 
