@@ -36,17 +36,17 @@ def generate_neq_yaml(
         T=temperature,
     )
 
-    hm_mix = [[calc_results.HM_MIX.values.squeeze().tolist()[point] for point in points]]
+    hm_mix = [[[calc_results.HM_MIX.values.squeeze().tolist()[point] for point in points]]]
 
     occupancies = [[calc_results.X.values.squeeze().tolist()[point]] for point in points]
 
     return {
         "components": components,
-        "phases": phase,
+        "phases": [phase],
         "solver": {
             "mode": "manual",
             "sublattice_site_ratios": [1],
-            "sublattice_configuraations": [[components] for _ in range(len(points))],
+            "sublattice_configurations": [[sorted(components)] for _ in range(len(points))],
             "sublattice_occupancies": occupancies,
         },
         "conditions": {

@@ -8,14 +8,19 @@ from espei.error_functions.zpf_error import ZPFResidual
 from espei.utils import PickleableTinyDB, database_symbols_to_fit
 from pycalphad import Database
 
+from phaseforgeplus.utils.hinge import HingePenalty
 
-def objective_function(db: Database, db_zpf: PickleableTinyDB, db_neq: PickleableTinyDB):
+
+def objective_function(
+    db: Database, db_zpf: PickleableTinyDB, db_neq: PickleableTinyDB, hinge: HingePenalty | None = None
+):
     """Create an objective function for optimization combining ZPF and non-equilibrium data.
 
     Args:
         db (Database): The thermodynamic database containing the model parameters
         db_zpf (PickleableTinyDB): Database containing ZPF data points
         db_neq (PickleableTinyDB): Database containing non-equilibrium thermochemical data
+        hinge (HingePenalty | None): Optional penalty added to the objective. The objective is unchanged when None.
 
     Returns:
         callable: A function that takes an array of parameters and returns the negative log likelihood
@@ -26,16 +31,25 @@ def objective_function(db: Database, db_zpf: PickleableTinyDB, db_neq: Pickleabl
     def func(params):
         """Objective function that combines ZPF and non-equilibrium data."""
         residual_func_zpf = ZPFResidual(db, db_zpf, phase_models=None, symbols_to_fit=symbols_to_fit)
-        likelihood_zpf, gradient_zpf = residual_func_zpf.get_likelihood(np.array(params))
+        likelihood_zpf, gradient_zpf = residual_func_zpf.get_likelihood_and_gradient(np.array(params))
 
         residual_func_neq = FixedConfigurationPropertyResidual(
             db, db_neq, phase_models=None, symbols_to_fit=symbols_to_fit
         )
-        likelihood_neq, gradient_neq = residual_func_neq.get_likelihood(np.array(params))
+        likelihood_neq, gradient_neq = residual_func_neq.get_likelihood_and_gradient(np.array(params))
 
         neg_likelihood = -(likelihood_zpf + likelihood_neq)
         neg_gradient = -1 * (gradient_zpf + gradient_neq)
 
         return neg_likelihood, neg_gradient
 
-    return func
+    if hinge is None:
+        return func
+
+    def func_with_hinge(params):
+        """Objective function with the hinge penalty added."""
+        neg_likelihood, neg_gradient = func(params)
+        penalty, penalty_gradient = hinge(np.array(params))
+        return neg_likelihood + penalty, neg_gradient + penalty_gradient
+
+    return func_with_hinge

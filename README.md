@@ -70,6 +70,71 @@ pfp.optimize()
 
 ---
 
+## Optimizer Options
+
+By default, `optimize()` runs conjugate gradient (`method="CG"`) through `scipy.optimize.minimize`. You can pass a different method, options for that method, and starting points. Passing `options` replaces the default `{"disp": True}` rather than adding to it. Without `starts`, the run begins at the parameter values in the database.
+
+```python
+result = pfp.optimize(method="L-BFGS-B", options={"maxiter": 500, "ftol": 1e-9})
+
+# Each start is a parameter vector in the order of database_symbols_to_fit and gets its own run. The returned result
+# is the run with the lowest objective. result.start_index tells you which start it came from, and result.runs holds
+# every run in the order of the starts.
+start = pfp.get_initial_values()
+result = pfp.optimize(options={"maxiter": 500, "gtol": 1e-3}, starts=[start, 1.1 * start])
+```
+
+---
+
+## Hinge Penalty on Spurious Phases
+
+The optional hinge penalty discourages parameters that make a phase stable where the evidence says it should not be. It is off unless you pass cells. Without cells, the objective is only the negative log-likelihood of the ZPF and non-equilibrium data.
+
+Each cell lists the phases expected to be stable at a temperature `T` and mole fraction `x`, and their Gibbs energies set a target line. For one expected phase, the line is that phase's chord over `x ± chord_half_width`. For two, it passes through both phases at the tie-line ends. Every penalized phase (by default, every phase not in `expected`) gets a driving force `DG`, the lowest value of its Gibbs energy minus the target line. When `DG` falls below `margin`, that phase adds `0.5 * confidence * ((margin - DG) / sigma) ** 2` to the negative log-likelihood. The penalty also passes its exact gradient to the optimizer.
+
+```python
+from phaseforgeplus import PhaseForgePlus
+from phaseforgeplus.utils import HingeOptions
+
+cells = [
+    # One expected phase. sigma is in J per mole of atoms.
+    {"T": 1000.0, "x": 0.1, "expected": ["FCC_A1"], "sigma": 500.0},
+    # Two expected phases also need the tie-line ends. confidence defaults to 1 and penalize to every other phase.
+    # sigma can also be given per penalized phase.
+    {
+        "T": 1500.0,
+        "x": 0.5,
+        "expected": ["FCC_A1", "BCC_A2"],
+        "tie_line": {"FCC_A1": 0.45, "BCC_A2": 0.9},
+        "confidence": 0.5,
+        "penalize": ["LIQUID"],
+        "sigma": {"LIQUID": 900.0},
+    },
+]
+
+pfp = PhaseForgePlus(
+    db="./data/pt-w.tdb",
+    zpf_path="./data",
+    points=[1801, 1601, 1401, 1201, 1001, 802, 602, 402, 202],
+    pressure=101325,
+    temperature=298.15,
+    hinge_cells=cells,
+    hinge_element="W",  # x is the mole fraction of this element
+    hinge_options=HingeOptions(margin=50.0, chord_half_width=0.01),
+)
+
+pfp.optimize()
+```
+
+Limits:
+
+* The penalty handles binary systems only. Constituents must be pure neutral elements or vacancies, with at most three per sublattice. Anything else raises an error.
+* Stoichiometric phases can be penalized and can sit at a tie-line end, but they cannot be the only expected phase in a cell.
+* The default `penalize` list cannot tell that a phase is another composition set of an expected phase, so it penalizes that set too. Give `penalize` explicitly to leave such phases out.
+* Each minimum is found on a fixed grid of configurations (see `HingeOptions`), with vacancy site fractions capped at 0.4 by default. The gradient is exact for this discretized function, which has kinks where the minimizing configuration changes and where `DG` crosses `margin`.
+
+---
+
 ## Citation
 
 If you use PhaseForgePlus in your research, please cite the following:

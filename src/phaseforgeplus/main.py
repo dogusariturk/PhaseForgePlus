@@ -1,13 +1,16 @@
 """PhaseForgePlus: A Python package for thermodynamic database optimization."""
 
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
 from espei.utils import database_symbols_to_fit, unpack_piecewise
+from numpy.typing import ArrayLike
 from scipy import optimize as scipy_optimize
 
 from phaseforgeplus.io import load_tdb, search_and_load_yaml
 from phaseforgeplus.utils import generate_neq_db
+from phaseforgeplus.utils.hinge import HingeOptions, HingePenalty
 from phaseforgeplus.utils.objective import objective_function
 
 
@@ -27,9 +30,20 @@ class PhaseForgePlus:
         phases (list): List of phases in the database.
         db_zpf (PickleableTinyDB): Database containing ZPF data points.
         db_neq (PickleableTinyDB): Database containing non-equilibrium thermochemical data.
+        hinge (HingePenalty | None): Penalty on phases that should not be stable, None unless cells are given.
     """
 
-    def __init__(self, db: str | Path, zpf_path: str | Path, points: list, pressure: float, temperature: float) -> None:
+    def __init__(
+        self,
+        db: str | Path,
+        zpf_path: str | Path,
+        points: list,
+        pressure: float,
+        temperature: float,
+        hinge_cells: list | None = None,
+        hinge_element: str | None = None,
+        hinge_options: HingeOptions | None = None,
+    ) -> None:
         """Initialize the PhaseForgePlus class.
 
         Args:
@@ -38,6 +52,9 @@ class PhaseForgePlus:
             points (list): List of points for optimization.
             pressure (float): Pressure in Pascals.
             temperature (float): Temperature in Kelvin.
+            hinge_cells (list | None): Cells of the hinge penalty, see ``HingeCell``. No penalty when empty or None.
+            hinge_element (str | None): The element whose mole fraction is ``x`` in the cells.
+            hinge_options (HingeOptions | None): Settings of the hinge penalty.
         """
         self.db = load_tdb(db)
         self.zpf_path = zpf_path
@@ -58,17 +75,49 @@ class PhaseForgePlus:
             temperature=self.temperature,
         )
 
-    def optimize(self) -> scipy_optimize.OptimizeResult:
-        """Optimize the thermodynamic database using a combination of ZPF and non-equilibrium data."""
-        func = objective_function(self.db, self.db_zpf, self.db_neq)
-        optimized_tdb = scipy_optimize.minimize(
-            func,
-            self.get_initial_values(),
-            jac=True,
-            method="CG",
-            options={"disp": True},
-        )
-        return optimized_tdb
+        self.hinge = None
+        if hinge_cells:
+            symbols = database_symbols_to_fit(self.db)
+            self.hinge = HingePenalty(self.db, symbols, hinge_cells, hinge_element, hinge_options)
+
+    def optimize(
+        self,
+        method: str = "CG",
+        options: dict | None = None,
+        starts: Sequence[ArrayLike] | None = None,
+    ) -> scipy_optimize.OptimizeResult:
+        """Optimize the thermodynamic database using a combination of ZPF and non-equilibrium data.
+
+        Args:
+            method (str): The method of ``scipy.optimize.minimize``, conjugate gradient by default.
+            options (dict | None): The options of that method, such as ``maxiter`` and ``gtol`` or ``ftol``. They replace
+                the default, which is ``{"disp": True}``.
+            starts (Sequence[ArrayLike] | None): Starting parameter vectors in the order of ``database_symbols_to_fit``.
+                The run starts from the database values when None.
+
+        Returns:
+            scipy.optimize.OptimizeResult: The result of the run. With ``starts``, the run with the lowest objective, its
+                ``start_index`` and all results in the order of the starts as ``runs``.
+
+        Raises:
+            ValueError: If ``starts`` is empty or a start does not have one value per fit parameter.
+        """
+        func = objective_function(self.db, self.db_zpf, self.db_neq, self.hinge)
+        options = {"disp": True} if options is None else options
+        if starts is None:
+            return scipy_optimize.minimize(func, self.get_initial_values(), jac=True, method=method, options=options)
+
+        num_parameters = len(self.get_initial_values())
+        starts = [np.asarray(start, dtype=float) for start in starts]
+        if not starts or any(start.shape != (num_parameters,) for start in starts):
+            raise ValueError(f"starts must be one or more vectors of {num_parameters} values.")
+
+        runs = [scipy_optimize.minimize(func, start, jac=True, method=method, options=options) for start in starts]
+        start_index = int(np.argmin([np.inf if np.isnan(run.fun) else run.fun for run in runs]))
+        best = runs[start_index]
+        best.start_index = start_index
+        best.runs = runs
+        return best
 
     def get_initial_values(self) -> np.ndarray:
         """Get initial values for the optimization based on the database symbols to fit."""
