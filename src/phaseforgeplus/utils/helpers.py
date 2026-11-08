@@ -36,7 +36,6 @@ def generate_neq_yaml(
         T=temperature,
     )
 
-    # ESPEI reads values with the shape (pressures, temperatures, configurations).
     hm_mix = [[[calc_results.HM_MIX.values.squeeze().tolist()[point] for point in points]]]
 
     occupancies = [[calc_results.X.values.squeeze().tolist()[point]] for point in points]
@@ -47,7 +46,6 @@ def generate_neq_yaml(
         "solver": {
             "mode": "manual",
             "sublattice_site_ratios": [1],
-            # The occupancies come from calculate, which orders the elements alphabetically.
             "sublattice_configurations": [[sorted(components)] for _ in range(len(points))],
             "sublattice_occupancies": occupancies,
         },
