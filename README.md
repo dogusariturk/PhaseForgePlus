@@ -2,6 +2,7 @@
 
 # PhaseForge+
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://opensource.org/license/gpl-3-0)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 ![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)
 [![Test](https://github.com/dogusariturk/PhaseForgePlus/actions/workflows/tests.yml/badge.svg)](https://github.com/dogusariturk/PhaseForgePlus/actions/workflows/tests.yml)
@@ -165,3 +166,9 @@ BibTeX:
   url          = {https://doi.org/10.5281/zenodo.17519087},
 }
 ```
+
+---
+
+## License
+
+This project is licensed under the GNU GPLv3 License. See the [LICENSE](https://github.com/dogusariturk/PhaseForgePlus/blob/main/LICENSE) file for details.
