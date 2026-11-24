@@ -9,18 +9,21 @@ a target line ``H(x)``:
 For every other phase ``psi`` the driving force over this line is ``DG = min_y [G_psi(y) - H(x(y))]`` over a fixed set
 of configurations ``y``, and the penalty is ``P = 0.5 * sum(conf * (max(0, margin - DG) / sigma) ** 2)``.
 
-Energies are in J per mole of atoms and ``P`` is in negative log-likelihood units. As the configuration sets are
-fixed, the gradient with respect to the fit parameters follows from the envelope theorem at the minimizing
-configurations. It is the exact derivative of the discretized function, which has kinks where a minimizer changes
-and where ``DG`` crosses ``margin``. Those two operations are ``_minimum`` and ``_hinge_term``.
+Energies are in J per mole of atoms and ``P`` is in negative log-likelihood units. Target configurations with
+internal freedom are refined at fixed composition. The parameter gradient follows from the envelope theorem
+at a converged constrained minimum (to solver accuracy); excluded phases retain a fixed cloud. The objective
+has kinks where a minimizing branch changes and where ``DG`` crosses ``margin``.
 """
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from copy import deepcopy
+from dataclasses import dataclass, replace
 
 import numpy as np
-from pycalphad import Database, Model, variables
+from pycalphad import Database, Model, equilibrium, variables
+from pycalphad.core.errors import CalculateError, DofError, EquilibriumError
+from scipy.optimize import minimize
 from symengine import Lambdify, Symbol
 
 __all__ = ["HingeCell", "HingeOptions", "HingePenalty"]
@@ -33,6 +36,8 @@ _EPS = 1e-9
 _X_MIN = 1e-4
 _MAX_CHORD_HALF_WIDTH = 0.5
 _STOICHIOMETRIC_TOLERANCE = 1e-3
+_REFERENCE_AMOUNT_MIN = 1e-8
+_REFERENCE_MASS_TOL = 1e-6
 
 
 @dataclass(frozen=True)
@@ -47,6 +52,11 @@ class HingeOptions:
         cloud_points_multiple (int): Grid points on a two-constituent sublattice when several sublattices mix.
         cloud_step_three (float): Site-fraction step on a three-constituent sublattice.
         fixed_x_step (float): Site-fraction step on the free sublattices at fixed composition.
+        refine_targets (bool): Refine multi-mixing-sublattice targets; default True. Other targets are unchanged.
+        refinement_tol (float): SLSQP energy stopping tolerance in J/mol-atom, default 1e-8.
+            This is a numerical stopping criterion, not a bound on error against the global minimum.
+        refinement_starts (int): Number of lowest-energy grid configurations to refine, default 3.
+        refinement_maxiter (int): Maximum SLSQP iterations per start, default 200.
     """
 
     margin: float = 50.0
@@ -56,6 +66,10 @@ class HingeOptions:
     cloud_points_multiple: int = 31
     cloud_step_three: float = 0.1
     fixed_x_step: float = 0.05
+    refine_targets: bool = True
+    refinement_tol: float = 1e-8
+    refinement_starts: int = 3
+    refinement_maxiter: int = 200
 
     def __post_init__(self) -> None:
         """Check the settings."""
@@ -69,6 +83,12 @@ class HingeOptions:
             raise ValueError("cloud_points_single and cloud_points_multiple must be at least 2")
         if not (0 < self.cloud_step_three <= 1 and 0 < self.fixed_x_step <= 1):
             raise ValueError("cloud_step_three and fixed_x_step must be in (0, 1]")
+        if not (math.isfinite(self.refinement_tol) and self.refinement_tol > 0):
+            raise ValueError("refinement_tol must be finite and positive")
+        for name in ("refinement_starts", "refinement_maxiter"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"{name} must be a positive integer")
 
 
 @dataclass(frozen=True)
@@ -151,6 +171,13 @@ class _PhaseEnergy:
             [variables.T, *self.site_fractions, *parameters],
             [model.GM] + [model.GM.diff(parameter) for parameter in parameters],
         )
+        self.has_internal_freedom = sum(len(names) > 1 for names in self.constituents) > 1
+        self._site_function = None
+        if self.has_internal_freedom:
+            self._site_function = Lambdify(
+                [variables.T, *self.site_fractions, *parameters],
+                [model.GM.diff(site) for site in self.site_fractions],
+            )
 
     @property
     def stoichiometric(self) -> bool:
@@ -278,6 +305,112 @@ class _PhaseEnergy:
         result = np.asarray(self.function(inputs)).reshape(n_rows, -1)
         return result[:, 0], result[:, 1:]
 
+    def refine(
+        self, x: float, temperature: float, theta: np.ndarray, rows: np.ndarray, options: HingeOptions
+    ) -> tuple[float, np.ndarray, dict]:
+        """Refine the best grid seeds with linear mass/sublattice constraints and bounded site fractions.
+
+        Vacancies contribute no atoms to the mass constraint. The grid remains a candidate, so refinement
+        cannot raise the target energy. A failed solve is recorded and never silently used as a converged target.
+        """
+        energies, gradients = self.evaluate(temperature, rows, theta)
+        seeds = np.argsort(energies, kind="stable")[: options.refinement_starts]
+        best = int(seeds[0])
+        if not np.isfinite(energies[best]):
+            raise ValueError(f"{self.phase}: nonfinite target grid at T={temperature}, x={x}")
+        energy, gradient = float(energies[best]), gradients[best]
+        configuration = rows[best].copy()
+        n = len(configuration)
+        lower, upper = np.zeros(n), np.ones(n)
+        sums, mass, offset = [], np.zeros(n), 0
+        for names, ratio in zip(self.constituents, self.ratios, strict=True):
+            row = np.zeros(n)
+            row[offset : offset + len(names)] = 1
+            sums.append(row)
+            for j, name in enumerate(names):
+                mass[offset + j] = ratio * ((name == self.element) - x * (name != _VACANCY))
+                if name == _VACANCY and len(names) > 1:
+                    upper[offset + j] = options.vacancy_cap
+            offset += len(names)
+        matrix = np.vstack([*sums, mass])
+        rhs = np.r_[np.ones(len(sums)), 0.0]
+        constraints = {"type": "eq", "fun": lambda y: matrix @ y - rhs, "jac": lambda y: matrix}
+        scale = max(1.0, 8.3145 * temperature)
+        # The grid fixes vacancies on its solved sublattice to zero. At exactly zero, the model's
+        # regularized ideal entropy can have a flat derivative. Move seeds slightly toward a feasible
+        # interior point to permit those degrees of freedom to relax, preserving every linear constraint.
+        middle = (lower + upper) / 2
+        center = minimize(
+            lambda y: (float(np.sum((y - middle) ** 2)), 2 * (y - middle)),
+            rows[best],
+            jac=True,
+            method="SLSQP",
+            bounds=list(zip(lower, upper, strict=True)),
+            constraints=constraints,
+            options={"ftol": 1e-14, "maxiter": options.refinement_maxiter},
+        )
+
+        def objective(y):
+            value = self.evaluate(temperature, y[None], theta)[0][0]
+            derivative = np.asarray(self._site_function(np.r_[temperature, y, theta])).reshape(-1)
+            return (value - energies[best]) / scale, derivative / scale
+
+        attempts = []
+        converged_energies = []
+        for seed in seeds:
+            initial = rows[seed]
+            if center.success and np.max(np.abs(matrix @ center.x - rhs)) <= _EPS:
+                initial = 0.999 * initial + 0.001 * center.x
+            result = minimize(
+                objective,
+                initial,
+                jac=True,
+                method="SLSQP",
+                bounds=list(zip(lower, upper, strict=True)),
+                constraints=constraints,
+                options={"ftol": options.refinement_tol / scale, "maxiter": options.refinement_maxiter},
+            )
+            value, derivative = self.evaluate(temperature, result.x[None], theta)
+            residual = float(np.max(np.abs(matrix @ result.x - rhs)))
+            composition_error = abs(float(self.composition(result.x[None])[0]) - x)
+            feasible = bool(
+                np.isfinite(value[0])
+                and np.all(np.isfinite(derivative))
+                and residual <= _EPS
+                and composition_error <= _EPS
+                and np.all(result.x >= lower - _EPS)
+                and np.all(result.x <= upper + _EPS)
+            )
+            accepted = bool(result.success and feasible)
+            attempts.append(
+                {
+                    "seed": int(seed),
+                    "success": bool(result.success),
+                    "accepted": accepted,
+                    "status": int(result.status),
+                    "message": str(result.message),
+                    "iterations": int(result.nit),
+                    "energy": float(value[0]),
+                    "constraint_residual": residual,
+                    "composition_error": composition_error,
+                }
+            )
+            if accepted:
+                converged_energies.append(float(value[0]))
+                if value[0] <= energy:
+                    energy, gradient, configuration = float(value[0]), derivative[0], result.x.copy()
+        converged = bool(converged_energies and min(converged_energies) <= energy + options.refinement_tol)
+        record = {
+            "converged": converged,
+            "grid_energy": float(energies[best]),
+            "energy": energy,
+            "improvement": float(energies[best]) - energy,
+            "site_fractions": configuration.tolist(),
+            "composition_error": abs(float(self.composition(configuration[None])[0]) - x),
+            "attempts": attempts,
+        }
+        return energy, gradient, record
+
 
 def _minimum(values: np.ndarray) -> int:
     """Return the index of the minimizing configuration."""
@@ -301,6 +434,8 @@ class HingePenalty:
         symbols (list[str]): The fit parameters, in the order of ``theta``.
         cells (list[HingeCell]): The validated cells.
         options (HingeOptions): The settings.
+        refinement_records (dict): Latest-parameter convergence records keyed by (phase, T, x).
+            Failure raises RuntimeError after retaining the record. Multiple starts are not a global proof.
     """
 
     def __init__(
@@ -341,6 +476,8 @@ class HingePenalty:
         self.cells = [cell if isinstance(cell, HingeCell) else HingeCell.from_mapping(cell) for cell in cells]
         self.penalized = [self._validate(cell, db) for cell in self.cells]
         components = [*elements, _VACANCY]
+        self._db = deepcopy(db)
+        self._components = components
         names = sorted(
             {name for cell, pen in zip(self.cells, self.penalized, strict=True) for name in (*cell.expected, *pen)}
         )
@@ -348,6 +485,9 @@ class HingePenalty:
         self._clouds = {name: phase.cloud(self.options) for name, phase in self._phases.items()}
         self._fixed = {}
         self._targets = [self._prepare_target(cell) for cell in self.cells]
+        self.refinement_records = {}
+        self._refined = {}
+        self._refined_theta = None
 
     def _validate(self, cell: HingeCell, db: Database) -> tuple[str, ...]:
         """Check one cell and return the phases to penalize in it."""
@@ -410,7 +550,7 @@ class HingePenalty:
             points = sorted(((name, float(cell.tie_line[name])) for name in cell.expected), key=lambda point: point[1])
             points = [(name, self._stoichiometric_x(cell, name, end)) for name, end in points]
         for name, x in points:
-            key = (name, round(x, 6))
+            key = self._fixed_key(name, x)
             if key not in self._fixed:
                 self._fixed[key] = self._phases[name].at_composition(x, self.options)
         return points[0], points[1]
@@ -427,13 +567,37 @@ class HingePenalty:
             return formula
         return end
 
+    def _fixed_key(self, phase: str, x: float) -> tuple[str, float]:
+        """Keep legacy keys for unchanged targets; preserve exact compositions for refined targets."""
+        if self.options.refine_targets and self._phases[phase].has_internal_freedom:
+            return phase, x
+        return phase, round(x, 6)
+
     def _minimum_at(self, phase: str, x: float, temperature: float, theta: np.ndarray) -> tuple[float, np.ndarray]:
         """Return the minimum energy of a phase at fixed composition and its parameter gradient."""
-        energies, gradients = self._phases[phase].evaluate(temperature, self._fixed[(phase, round(x, 6))], theta)
+        energy = self._phases[phase]
+        rows = self._fixed[self._fixed_key(phase, x)]
+        if self.options.refine_targets and energy.has_internal_freedom:
+            signature = theta.tobytes()
+            if signature != self._refined_theta:
+                self._refined.clear()
+                self.refinement_records.clear()
+                self._refined_theta = signature
+            key = (phase, temperature, x)
+            if key not in self._refined:
+                value, gradient, record = energy.refine(x, temperature, theta, rows, self.options)
+                self.refinement_records[key] = record
+                if not record["converged"]:
+                    raise RuntimeError(f"{phase}: target refinement did not converge at T={temperature}, x={x}")
+                self._refined[key] = value, gradient
+            return self._refined[key]
+        energies, gradients = energy.evaluate(temperature, rows, theta)
         index = _minimum(energies)
         return float(energies[index]), gradients[index]
 
-    def _driving_force(self, k: int, phase: str, theta: np.ndarray) -> tuple[float, np.ndarray]:
+    def _driving_force(
+        self, k: int, phase: str, theta: np.ndarray, cloud: tuple[np.ndarray, np.ndarray] | None = None
+    ) -> tuple[float, np.ndarray]:
         """Return the driving force of a phase over the target line of cell k and its parameter gradient."""
         temperature = self.cells[k].temperature
         (phase_a, x_a), (phase_b, x_b) = self._targets[k]
@@ -441,7 +605,7 @@ class HingePenalty:
         g_b, dg_b = self._minimum_at(phase_b, x_b, temperature, theta)
         slope = (g_b - g_a) / (x_b - x_a)
         dslope = (dg_b - dg_a) / (x_b - x_a)
-        configurations, compositions = self._clouds[phase]
+        configurations, compositions = self._clouds[phase] if cloud is None else cloud
         energies, gradients = self._phases[phase].evaluate(temperature, configurations, theta)
         differences = energies - (g_a + slope * (compositions - x_a))
         index = _minimum(differences)
@@ -453,6 +617,152 @@ class HingePenalty:
         if theta.shape != (len(self.symbols),):
             raise ValueError(f"theta has shape {theta.shape}, expected ({len(self.symbols)},)")
         return theta
+
+    def _reference_target(self, phase: str, temperature: float, x: float, theta: np.ndarray, pdens: int) -> dict:
+        """Evaluate and validate a single-phase-restricted equilibrium, retaining composition sets."""
+        result = equilibrium(
+            self._db,
+            self._components,
+            [phase],
+            {variables.T: temperature, variables.P: 101325, variables.N: 1, variables.X(self.element): x},
+            parameters=dict(zip(self.symbols, theta, strict=True)),
+            calc_opts={"pdens": pdens},
+        )
+        energy = float(result.GM.values.squeeze())
+        names = result.Phase.values.reshape(-1)
+        amounts = result.NP.values.reshape(-1)
+        compositions = result.X.sel(component=self.element).values.reshape(-1)
+        occupied = np.isfinite(amounts) & (amounts > _REFERENCE_AMOUNT_MIN)
+        amounts, compositions = amounts[occupied], compositions[occupied]
+        if not (
+            np.isfinite(energy)
+            and len(amounts) > 0
+            and np.all(names[occupied] == phase)
+            and np.all(np.isfinite(compositions))
+            and abs(amounts.sum() - 1) < _REFERENCE_MASS_TOL
+            and abs(np.dot(amounts, compositions) - x) < _REFERENCE_MASS_TOL
+        ):
+            raise ValueError("invalid reference energy, phase amounts or mass balance")
+        return {
+            "reference_energy": energy,
+            "phase_compositions": compositions.tolist(),
+            "phase_fractions": amounts.tolist(),
+            "split": bool(np.ptp(compositions) > _REFERENCE_MASS_TOL),
+        }
+
+    def check_targets(self, theta: np.ndarray, *, pdens: int = 5000) -> dict:
+        """Compare target endpoints and test the resolution of the excluded-phase search.
+
+        Michael Bustamante identified the coarse-grid target error in ordered phases with antisites and
+        proposed this comparison. This implementation independently checks the same T, x and parameters
+        against pycalphad single-phase-restricted equilibrium at 101325 Pa and one mole.
+
+        Args:
+            theta (np.ndarray): Fit parameters in ``symbols`` order.
+            pdens (int): Reference sampling density, default 5000.
+
+        Returns:
+            dict: ``endpoints`` with signed target-minus-reference differences and tolerance
+            ``min(10, min(sigma)/10)`` in J/mol-atom; ``failures`` includes invalid references and absolute
+            differences above tolerance. ``splits`` lists miscibility-gap endpoints separately: their
+            convexified reference is not a homogeneous target and they are not numerical passes or failures.
+            Reference equilibrium does not impose ``vacancy_cap``; differences can expose this mismatch.
+            ``excluded_search`` reports every driving-force change and verdict change when
+            ``cloud_points_multiple`` is doubled. Other cloud options are unchanged; phases with unchanged
+            clouds are identified explicitly. No convergence threshold is inferred from this one comparison.
+            ``passed`` covers nonsplit target comparisons only, not a global-minimum or cloud certificate.
+        """
+        theta = self._theta(theta)
+        if isinstance(pdens, bool) or not isinstance(pdens, int) or pdens < 1:
+            raise ValueError("pdens must be a positive integer")
+        endpoints, failures, splits, cache = [], [], [], {}
+        for k, (cell, points) in enumerate(zip(self.cells, self._targets, strict=True)):
+            sigma = min(cell.sigma.values()) if isinstance(cell.sigma, Mapping) else cell.sigma
+            tolerance = min(10.0, float(sigma) / 10)
+            if not math.isfinite(float(sigma)) or sigma <= 0:
+                raise ValueError("target-check sigma must be finite and positive")
+            for endpoint, (phase, x) in enumerate(points):
+                row = {
+                    "cell_index": k,
+                    "endpoint": endpoint,
+                    "phase": phase,
+                    "T": cell.temperature,
+                    "x": x,
+                    "tolerance": tolerance,
+                }
+                key = phase, cell.temperature, x
+                try:
+                    row["target_energy"] = self._minimum_at(phase, x, cell.temperature, theta)[0]
+                    if key not in cache:
+                        cache[key] = self._reference_target(phase, cell.temperature, x, theta, pdens)
+                    row.update(cache[key])
+                    difference = row["target_energy"] - row["reference_energy"]
+                    row["difference"] = difference
+                    if not math.isfinite(difference):
+                        raise ValueError("nonfinite target difference")
+                    row["status"] = "split" if row["split"] else ("pass" if abs(difference) <= tolerance else "fail")
+                except (
+                    ValueError,
+                    RuntimeError,
+                    FloatingPointError,
+                    CalculateError,
+                    DofError,
+                    EquilibriumError,
+                ) as exc:
+                    row.update(status="fail", error=str(exc))
+                row["refinement"] = deepcopy(self.refinement_records.get(key))
+                endpoints.append(row)
+                if row["status"] == "split":
+                    splits.append(row)
+                elif row["status"] == "fail":
+                    failures.append(row)
+        return {
+            "pdens": pdens,
+            "passed": not failures,
+            "endpoints": endpoints,
+            "failures": failures,
+            "splits": splits,
+            "excluded_search": self._check_excluded_search(theta),
+        }
+
+    def _check_excluded_search(self, theta: np.ndarray) -> dict:
+        """Compare unchanged target lines against the original and doubled excluded-phase clouds."""
+        denser = replace(self.options, cloud_points_multiple=2 * self.options.cloud_points_multiple)
+        clouds = {
+            name: self._phases[name].cloud(denser) for name in sorted({p for phases in self.penalized for p in phases})
+        }
+        comparisons, errors = [], []
+        for k, phases in enumerate(self.penalized):
+            for phase in phases:
+                try:
+                    before = self._driving_force(k, phase, theta)[0]
+                    after = self._driving_force(k, phase, theta, clouds[phase])[0]
+                    if not (math.isfinite(before) and math.isfinite(after)):
+                        raise ValueError("nonfinite excluded-phase driving force")
+                    comparisons.append(
+                        {
+                            "cell_index": k,
+                            "phase": phase,
+                            "before": before,
+                            "after": after,
+                            "change": after - before,
+                            "violation_before": before < self.options.margin,
+                            "violation_after": after < self.options.margin,
+                            "verdict_changed": (before < self.options.margin) != (after < self.options.margin),
+                        }
+                    )
+                except (ValueError, RuntimeError, FloatingPointError) as exc:
+                    errors.append({"cell_index": k, "phase": phase, "error": str(exc)})
+        return {
+            "cloud_points_multiple": [self.options.cloud_points_multiple, denser.cloud_points_multiple],
+            "unchanged_cloud_phases": [
+                name for name in clouds if np.array_equal(clouds[name][0], self._clouds[name][0])
+            ],
+            "comparisons": comparisons,
+            "errors": errors,
+            "max_abs_driving_force_change": max((abs(row["change"]) for row in comparisons), default=0.0),
+            "verdict_changes": [row for row in comparisons if row["verdict_changed"]],
+        }
 
     def __call__(self, theta: np.ndarray) -> tuple[float, np.ndarray]:
         """Return the penalty and its gradient with respect to the fit parameters.

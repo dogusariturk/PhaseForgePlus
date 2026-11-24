@@ -1,3 +1,5 @@
+exclude: ^tests/data/.*\.tdb$
+
 repos:
 
   - repo: https://github.com/astral-sh/uv-pre-commit
